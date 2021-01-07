@@ -1,0 +1,5 @@
+Keras library:
+	- https://keras.io/examples/timeseries/timeseries_anomaly_detection/
+	- https://machinelearningmastery.com/lstm-autoencoders/
+	- https://curiousily.com/posts/anomaly-detection-in-time-series-with-lstms-using-keras-in-python/
+	- https://medium.com/swlh/time-series-anomaly-detection-with-lstm-autoencoders-7bac1305e713
