@@ -14,6 +14,8 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.feature_selection import RFE
 from sklearn.linear_model import LogisticRegression
 
+from statsmodels.tsa.seasonal import seasonal_decompose
+
 
 # COV_DATA: set of the probability distributions over observations in each state
 # hellinger_dist: 1/2 * integral(sqrt (f(x)) - sqrt (g(x)) dx) 
@@ -101,10 +103,49 @@ def feature_extraction(dataset):
         if fit.ranking_[i] == 1:
             feat.append(i)
     
+    
     train = dataset[0:2221,feat]
     test = dataset[2221:,feat]
     
+    ########## RIDUZIONE DEL RUMORE CON ROLLING MEAN ############
+    seconds = 0.5
+    
+    dataset_normalized = []
+    for column in train.transpose():
+        
+        # DATI IN SCALA MA INUTILE QUI MAGARI INFLUISCE SE SPOSTATO SOPRA
+        '''
+        scale = max(abs(column))
+        if scale != 0:
+            column /= scale
+        dataset_normalized.append(column)
+        '''
+        
+        # rolling mean 
+        column = pd.Series(column).rolling(int(16*seconds)).mean()
+        column.dropna(inplace=True)
+        
+        # decomposizione serie temporale
+        ts_column = pd.Series(column)
+        decomposition = seasonal_decompose(ts_column, model="additive", period=200)
+        
+        residual_absent = decomposition.seasonal + decomposition.trend
+        residual_absent.dropna(inplace=True)        
+        dataset_normalized.append(residual_absent)
+        
+        
+        # rolling mean da sola 
+        '''
+        rolling_mean = pd.Series(column).rolling(int(16*seconds)).mean()
+        rolling_mean.dropna(inplace=True)
+        dataset_normalized.append(rolling_mean)'''
+    
+    train = np.array(dataset_normalized).transpose()
+    
+    ########## #################################### #############
+    
     ##########EVALUATION OF ANOMALY SCORE##########
+    
     model.fit(train)
     anomaly_scores = evaluate(model, np.concatenate((train, test)), w)
     ###############################################

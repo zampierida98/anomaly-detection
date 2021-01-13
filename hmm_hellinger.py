@@ -9,10 +9,16 @@ import numpy as np
 from scipy import stats, linalg
 from hmmlearn import hmm
 import matplotlib.pyplot as plt
-import os
 
+
+from sklearn.feature_selection import VarianceThreshold
+from sklearn.feature_selection import SelectFromModel
 from sklearn.decomposition import PCA
+from sklearn.manifold import TSNE
 
+import pandas as pd
+from statsmodels.tsa.seasonal import seasonal_decompose
+import os
 
 # COV_DATA: set of the probability distributions over observations in each state
 # hellinger_dist: 1/2 * integral(sqrt (f(x)) - sqrt (g(x)) dx) 
@@ -103,10 +109,8 @@ for column in training_set.transpose():
 
 # i dati vanno normalizzati rimuovendo il rumore
 
-def moving_average(x, w):
-    return np.convolve(x, np.ones(w), 'valid') / w
-
-
+#'''
+second = 10
 dataset_normalized = []
 for d in dataset:
 
@@ -114,19 +118,86 @@ for d in dataset:
     index_normaliz = len(dataset_normalized) - 1
 
     for column in d.transpose():
-        dataset_normalized[index_normaliz].append(moving_average(column, 32))
+        ts_column = pd.Series(column)
+        rolling_mean = ts_column.rolling(16*second).mean()
+        rolling_mean.dropna(inplace=True)
+        
+        dataset_normalized[index_normaliz].append(rolling_mean)
     
     dataset_normalized[index_normaliz] = np.array(dataset_normalized[index_normaliz])
     dataset_normalized[index_normaliz] = dataset_normalized[index_normaliz].transpose()
+#'''
 
+'''
+residuals = []
+for d in dataset:
+
+    residuals.append([])
+    index_normaliz = len(residuals) - 1
+
+    for column in d.transpose():
+        ts_column = pd.Series(column)
+        decomposition = seasonal_decompose(ts_column, model="additive", period=213)
+        
+        residual = decomposition.resid + decomposition.trend
+        residual.dropna(inplace=True)
+        
+        residuals[index_normaliz].append(residual)
+    
+    residuals[index_normaliz] = np.array(residuals[index_normaliz])
+    residuals[index_normaliz] = residuals[index_normaliz].transpose()
+
+
+dataset_normalized = residuals
+'''
+
+'''
+dataset_normalized = []
+for d in dataset:
+
+    dataset_normalized.append([])
+    index_normaliz = len(dataset_normalized) - 1
+
+    for column in d.transpose():
+        scale = max(abs(column))
+        if scale != 0:
+            column /= scale
+        dataset_normalized[index_normaliz].append(column)
+    
+    dataset_normalized[index_normaliz] = np.array(dataset_normalized[index_normaliz])
+    dataset_normalized[index_normaliz] = dataset_normalized[index_normaliz].transpose()
+'''
+
+#dataset_normalized = dataset
 
 final_dataset = []
+
+#'''
 for d in dataset_normalized:
     
-    pca = PCA(n_components=5)
+    pca = PCA(n_components=3)
     final_dataset.append(pca.fit_transform(d))
+
+#'''
     
+'''
+for d in dataset_normalized:
+    
+    sel = VarianceThreshold(threshold=(60))
+    final_dataset.append(sel.fit_transform(d))
+
+'''
+
+'''
+for d in dataset_normalized:
+    
+    tsne = TSNE(n_components=3)
+    final_dataset.append(tsne.fit_transform(d))
+
+'''
+
 # %%
+
 '''
 index = 0
 for i in range(dataset[0].transpose().shape[0]):
@@ -149,16 +220,20 @@ test_set = dataset[cut_index:]'''
 
 '''
 l = [w] * int(len(dataset_normalized)/w)
-l.append(len(dataset_normalized) % int(len(dataset_normalized)/w))'''
+l.append(len(dataset_normalized) % int(len(dataset_normalized)/w))
+
 
 dataset_norm_unique = []
 for d in dataset_normalized:
     for row in d:
         dataset_norm_unique.append(row)
 
-dataset_norm_unique = np.array(dataset_norm_unique)
+dataset_norm_unique = np.array(dataset_norm_unique)'''
 
-model.fit(final_dataset[0])
+
+lengths = [100,100,100,100,100,100,100]
+
+model.fit(final_dataset[0], lengths=lengths)
 
 ###############################################
 
