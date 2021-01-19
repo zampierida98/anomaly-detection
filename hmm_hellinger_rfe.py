@@ -104,8 +104,13 @@ def feature_extraction(dataset):
             feat.append(i)
     
     
+    # la testa del dataset che non veniva valutata per la decomposizione
+    head = dataset[0:107,feat]
+    
     train = dataset[0:2221,feat]
-    test = dataset[2221:,feat]
+    
+    #la decomposizione con season a 200 toglie i 100 campioni all'inizio e alla fine
+    test = dataset[2121:,feat]
     
     ########## RIDUZIONE DEL RUMORE CON ROLLING MEAN ############
     seconds = 0.5
@@ -148,6 +153,7 @@ def feature_extraction(dataset):
     
     model.fit(train)
     anomaly_scores = evaluate(model, np.concatenate((train, test)), w)
+    #anomaly_scores = evaluate(model, np.concatenate((head, train, test)), w)
     ###############################################
     
     return anomaly_scores
