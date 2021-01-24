@@ -138,12 +138,12 @@ def feature_extraction(dataset):
         residual_absent.dropna(inplace=True)        
         dataset_normalized.append(residual_absent)
         
-        
         # rolling mean da sola 
         '''
         rolling_mean = pd.Series(column).rolling(int(16*seconds)).mean()
         rolling_mean.dropna(inplace=True)
-        dataset_normalized.append(rolling_mean)'''
+        dataset_normalized.append(rolling_mean)
+        '''
     
     train = np.array(dataset_normalized).transpose()
     
@@ -165,7 +165,7 @@ plt.plot(anomaly_scores)
 plt.ylim(bottom = -0.05, top = 1.05)
 plt.title("Anomaly Score on dataset")
 plt.show()
-
+'''
 anomaly_scores = feature_extraction(dataset)
 plt.figure()
 plt.plot(anomaly_scores)
@@ -175,3 +175,4 @@ plt.axvline(x=2531, c='black')
 plt.axvline(x=2531+1403, c='red')
 plt.title("Anomaly Score on dataset")
 plt.show()
+'''
