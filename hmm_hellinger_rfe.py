@@ -102,6 +102,23 @@ def feature_extraction(dataset):
     for i in range(len(fit.ranking_)):
         if fit.ranking_[i] == 1:
             feat.append(i)
+            
+    # plot dei grafici
+    '''
+    titles = ["time", "roll_commanded","roll_measured","pitch_commanded","pitch_measured",
+              "yaw_commanded","yaw_measured","label","wind_estimation_linear_x","wind_estimation_linear_y",
+              "orientation_x","orientation_y","orientation_z","orientation_w","angular_velocity_x","angular_velocity_y",
+              "angular_velocity_z","linear_acceleration_x","linear_acceleration_y","linear_acceleration_z","airspeed","groundspeed",
+              "throttle","altitude","climb"]
+
+    index = 0
+    for column in dataset_1.transpose():
+        plt.figure()
+        plt.plot(column)
+        plt.title("Column:" + titles[index])
+        plt.show()
+        index += 1
+    '''
     
     
     # la testa del dataset che non veniva valutata per la decomposizione
