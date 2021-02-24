@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import pandas as pd
 import numpy as np
-from scipy import stats, linalg
+from scipy import stats, linalg, integrate
 from hmmlearn import hmm
 import matplotlib.pyplot as plt
 
@@ -11,6 +11,47 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import roc_curve
 
 from statsmodels.tsa.seasonal import seasonal_decompose
+
+def bic_fun(funz_likelihood, params, data):
+    """
+    Calcola la metrica per la scelta del modello all'interno di una classe di modelli
+    
+    -2 ln(L) + p*ln(len(data))
+    
+    - L è il valore max della funzione di likelihood ottenuta da model(HMM).score
+    - p numero di parametri del modello HMM (Sezione: Structural architecture) https://en.wikipedia.org/wiki/Hidden_Markov_model 
+    """
+    
+    bic = -2*funz_likelihood(data) + params*np.log(len(data))
+    return bic
+
+def chose_best_model(data, n_states_max=10):
+    min_bic = float("inf")
+    n_states = 0
+    best_hmm = None
+    
+    for N in range(1,n_states_max):
+        hmm_candidate = hmm.GaussianHMM(n_components=N, covariance_type='diag', n_iter=100, random_state=0)
+        hmm_candidate.fit(data)
+
+        # Calcolo dei parametri di HMM
+        # - probabilità di transizione N*(N-1)
+        # - distribuzione continua quindi MEDIE + MATRICE COVARIANZA = (N*M(M+3))/2
+        #
+        #(Sezione: Structural architecture) https://en.wikipedia.org/wiki/Hidden_Markov_model 
+        
+        M = hmm_candidate.n_features
+
+        parameters = N*(N-1) + (N*M*(M+3))/2
+
+        bic = bic_fun(hmm_candidate.score, parameters, data)
+        
+        if bic < min_bic:
+            min_bic = bic
+            best_hmm = hmm_candidate
+            n_states = N
+
+    return (best_hmm, n_states)
 
 
 # COV_DATA: set of the probability distributions over observations in each state
@@ -78,6 +119,26 @@ dataset = np.delete(dataset, np.s_[6], axis=1)
 
 Y = Y.astype('float32')
 dataset = dataset.astype('float32')
+
+
+############################################### BIC
+############################################### BIC
+############################################### BIC
+############################################### BIC
+############################################### BIC
+############################################### BIC
+best_hmm, n_states = chose_best_model(dataset)
+print("Il miglior modello è quello con", n_states)
+
+model = hmm.GaussianHMM(n_components=n_states, covariance_type="diag", n_iter=100, random_state=0)
+############################################### BIC
+############################################### BIC
+############################################### BIC
+############################################### BIC
+############################################### BIC
+############################################### BIC
+
+
 
 # https://www.datacamp.com/community/tutorials/feature-selection-python
 # Standardizing the features
@@ -158,6 +219,8 @@ plt.show()
 # %% curva ROC e statistiche al variare della threshold
 print(len(dataset)) # 2531
 print(len(anomaly_scores)) # 2325 + 106 persi in rolling mean + 100 persi in evaluate = 2531
+
+# label che evidenziano se c'è una ANOMALIA oppure NO
 print(len(Y)) # Y usato da 206 a 2531
 
 thresholds = [i for i in np.arange(0.3,0.82,0.02)] # 26 valori da 0.3 a 0.8
@@ -233,9 +296,31 @@ plt.plot(thresholds, fprs)
 plt.title("False Positive Rate")
 plt.show()
 
+'''
+Una curva ROC è il grafico dell'insieme delle coppie (FP, TP) al variare di un 
+parametro del classificatore. Per esempio, in un classificatore a soglia, si 
+calcola la frazione di veri positivi e quella di falsi positivi per ogni possibile
+valore della soglia; tutti i punti così ottenuti nello spazio FP-TP descrivono la curva ROC.
+
+Attraverso l'analisi delle curve ROC si valuta la capacità del classificatore di discernere, 
+ad esempio, tra un insieme di popolazione sana e malata, calcolando l'area sottesa alla curva
+ROC (Area Under Curve, AUC). 
+
+Il valore di AUC, compreso tra 0 e 1, equivale infatti 
+alla probabilità che il risultato del classificatore applicato ad un individuo estratto
+a caso dal gruppo dei malati sia superiore a quello ottenuto applicandolo ad un individuo
+estratto a caso dal gruppo dei sani.
+'''
 # https://scikit-learn.org/stable/modules/generated/sklearn.metrics.roc_curve.html
 fpr, tpr, t = roc_curve(Y[206:], anomaly_scores)
 plt.figure()
 plt.plot(fpr, tpr)
 plt.title("Curva ROC")
 plt.show()
+
+AUC = integrate.trapz(tpr, fpr)
+
+print("AUC (metodo integrazione trapezoidale):", AUC)
+
+
+
