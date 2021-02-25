@@ -34,9 +34,9 @@ def chose_best_model(data, n_states_max=10):
         hmm_candidate = hmm.GaussianHMM(n_components=N, covariance_type='diag', n_iter=100, random_state=0)
         hmm_candidate.fit(data)
 
-        # Calcolo dei parametri di HMM
+        # Calcolo il numero dei parametri di HMM
         # - probabilità di transizione N*(N-1)
-        # - distribuzione continua quindi MEDIE + MATRICE COVARIANZA = (N*M(M+3))/2
+        # - distribuzione multivariata quindi MEDIE + MATRICE COVARIANZA = (N*M(M+3))/2
         #
         #(Sezione: Structural architecture) https://en.wikipedia.org/wiki/Hidden_Markov_model 
         
