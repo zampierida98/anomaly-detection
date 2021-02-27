@@ -40,9 +40,12 @@ def chose_best_model(data, n_states_max=10):
         #
         #(Sezione: Structural architecture) https://en.wikipedia.org/wiki/Hidden_Markov_model 
         
+        
+        
         M = hmm_candidate.n_features
 
-        parameters = N*(N-1) + (N*M*(M+3))/2
+        #parameters = N*(N-1) + (N*M*(M+3))/2
+        parameters = M + M^2 + N*M + N*M
 
         bic = bic_fun(hmm_candidate.score, parameters, data)
         
@@ -127,10 +130,12 @@ dataset = dataset.astype('float32')
 ############################################### BIC
 ############################################### BIC
 ############################################### BIC
+'''
 best_hmm, n_states = chose_best_model(dataset)
 print("Il miglior modello è quello con", n_states)
 
 model = hmm.GaussianHMM(n_components=n_states, covariance_type="diag", n_iter=100, random_state=0)
+'''
 ############################################### BIC
 ############################################### BIC
 ############################################### BIC

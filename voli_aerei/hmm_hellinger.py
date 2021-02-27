@@ -80,7 +80,11 @@ def chose_best_model(data, n_states_max=10):
     n_states = 0
     best_hmm = None
     
-    for N in range(1,n_states_max):
+    print("Identintifico il miglior modello...")
+    for N in range(1,n_states_max+1):
+
+        print("Iterazione:", N, end=", ")
+        
         hmm_candidate = hmm.GaussianHMM(n_components=N, covariance_type='diag', n_iter=100, random_state=0)
         hmm_candidate.fit(data)
 
@@ -93,7 +97,8 @@ def chose_best_model(data, n_states_max=10):
         # n_features: Dimensionality of the Gaussian emissions.
         M = hmm_candidate.n_features
 
-        parameters = N*(N-1) + (N*M*(M+3))/2
+        #parameters = N*(N-1) + (N*M*(M+3))/2
+        parameters = M + M^2 + N*M + N*M
 
         bic = bic_fun(hmm_candidate.score, parameters, data)
         
@@ -101,6 +106,9 @@ def chose_best_model(data, n_states_max=10):
             min_bic = bic
             best_hmm = hmm_candidate
             n_states = N
+
+
+        print("miglior modello:", n_states, ", valore bic=", min_bic)
 
     return (best_hmm, n_states)
 
@@ -143,7 +151,7 @@ train = np.array(train_normalized).transpose() # 1 - roll mean sul train set
 ################# SCELTA MIGLIOR MODELLO
 # fa già il fitting dei dati
 
-best_hmm, n_states = chose_best_model(train, 21)
+best_hmm, n_states = chose_best_model(train, 30)
 print("Il miglior modello è quello con", n_states)
 
 model = best_hmm
