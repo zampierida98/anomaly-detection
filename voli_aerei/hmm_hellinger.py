@@ -1,21 +1,19 @@
 # -*- coding: utf-8 -*-
 """
 HMM voli aerei
-
-@author: 
+ 
 """
+
 import pandas as pd
 import numpy as np
 from scipy import stats, linalg, integrate
 from hmmlearn import hmm
 import matplotlib.pyplot as plt
-
-from sklearn.preprocessing import StandardScaler
-from sklearn.feature_selection import RFE
-from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import roc_curve
 
-from statsmodels.tsa.seasonal import seasonal_decompose
+import warnings
+warnings.filterwarnings('ignore')
+
 
 # COV_DATA: set of the probability distributions over observations in each state
 # hellinger_dist: 1/2 * integral(sqrt (f(x)) - sqrt (g(x)) dx) 
@@ -75,6 +73,7 @@ def bic_fun(funz_likelihood, params, data):
     bic = -2*funz_likelihood(data) + params*np.log(len(data))
     return bic
 
+
 def chose_best_model(data, n_states_max=10):
     min_bic = float("inf")
     n_states = 0
@@ -113,14 +112,9 @@ def chose_best_model(data, n_states_max=10):
     return (best_hmm, n_states)
 
 
-##################################      MAIN
-##################################      MAIN
-##################################      MAIN
-    
-path_train = './dataset_voli/187093582_train_set.csv'
-path_test  = './dataset_voli/187093582_test_set.csv'
-w = 90 # grandezza della finestra
-
+################# MAIN
+path_train = './datasets/dataset_voli/187093582_train_set.csv'
+path_test  = './datasets/dataset_voli/187093582_test_set.csv'
 
 train = pd.read_csv(path_train).values
 test  = pd.read_csv(path_test).values
@@ -147,30 +141,47 @@ for column in train.transpose():
 train = np.array(train_normalized).transpose() # 1 - roll mean sul train set
 '''
 
-
 ################# SCELTA MIGLIOR MODELLO
 # fa già il fitting dei dati
+#best_hmm, n_states = chose_best_model(train, 30)
+#print("Il miglior modello è quello con", n_states)
+#model = best_hmm
 
-best_hmm, n_states = chose_best_model(train, 30)
-print("Il miglior modello è quello con", n_states)
+# miglior modello secondo BIC
+model = hmm.GaussianHMM(n_components=30, covariance_type="diag", n_iter=100, random_state=0)
 
-model = best_hmm
+#model = hmm.GaussianHMM(n_components=20, covariance_type="diag", n_iter=100, random_state=0)
 
-'''
-model = hmm.GaussianHMM(n_components=20, covariance_type="diag", n_iter=100, random_state=0)
-model.fit(train)'''
+model.fit(train)
 
+# %% Grandezza della finestra variabile
+min_w = 0
+min_AUC = 1
+
+for w in range(0,101,2):
+    try:
+        anomaly_scores = evaluate(model, test, w)
+    except:
+        continue
+    
+    fpr, tpr, t = roc_curve(Y[(w-1):], anomaly_scores)
+    AUC = integrate.trapz(tpr, fpr)
+    print("Finestra =", w, "AUC =", AUC)
+    
+    if AUC < min_AUC:
+        min_w = w
+        min_AUC = AUC
+
+# %% curva ROC e statistiche al variare della threshold
+w = min_w # miglior finestra
 anomaly_scores = evaluate(model, test, w)
-#anomaly_scores = evaluate(model, np.concatenate((train, test)), w)
 
 plt.figure()
-plt.plot(anomaly_scores)
+plt.plot(np.arange(0,240), anomaly_scores[0:240])
+plt.fill_between(np.arange(0,240), Y[(w-1):240+(w-1)], color='red', alpha=0.5)
 plt.ylim(bottom = -0.05, top = 1.05)
 plt.title("Anomaly Score on dataset")
 plt.show()
-
-
-# %% curva ROC e statistiche al variare della threshold
 
 # test e anomaly_scores hanno medesima lunghezza dato che non sono state fatte operazioni
 # per ridurre il rumore
@@ -178,9 +189,9 @@ print(len(test))
 print(len(anomaly_scores))
 
 # label che evidenziano se c'è una ANOMALIA oppure NO
-print(len(Y)) # Y usato da 206 a 2531
+print(len(Y))
 
-thresholds = [i for i in np.arange(0.18,0.82,0.02)] # 32 valori da 0.18 a 0.82
+thresholds = [i for i in np.arange(0,1,0.05)]
 precs, recs, f1s, accs, tprs, fprs = [], [], [], [], [], []
 
 for thresh in thresholds:
@@ -189,7 +200,7 @@ for thresh in thresholds:
     for i in range(len(anomaly_scores)):
         s = anomaly_scores[i]
         if s > thresh: # valore anomalo?
-            if Y[i+(w-1)]: ## == True
+            if Y[i+(w-1)] == True:
                 tp += 1
             else:
                 fp += 1
@@ -278,4 +289,3 @@ plt.show()
 AUC = integrate.trapz(tpr, fpr)
 
 print("AUC (metodo integrazione trapezoidale):", AUC)
-
