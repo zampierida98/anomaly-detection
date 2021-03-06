@@ -147,16 +147,15 @@ train = np.array(train_normalized).transpose() # 1 - roll mean sul train set
 #print("Il miglior modello è quello con", n_states)
 #model = best_hmm
 
-# miglior modello secondo BIC
-model = hmm.GaussianHMM(n_components=30, covariance_type="diag", n_iter=100, random_state=0)
-
-#model = hmm.GaussianHMM(n_components=20, covariance_type="diag", n_iter=100, random_state=0)
+#K = 20
+K = 30 # miglior modello secondo BIC
+model = hmm.GaussianHMM(n_components=K, covariance_type="diag", n_iter=100, random_state=0)
 
 model.fit(train)
 
 # %% Grandezza della finestra variabile
-min_w = 0
-min_AUC = 1
+w_ott = 0
+max_AUC = 0
 
 for w in range(0,101,2):
     try:
@@ -168,19 +167,19 @@ for w in range(0,101,2):
     AUC = integrate.trapz(tpr, fpr)
     print("Finestra =", w, "AUC =", AUC)
     
-    if AUC < min_AUC:
-        min_w = w
-        min_AUC = AUC
+    if AUC > max_AUC:
+        w_ott = w
+        max_AUC = AUC
 
 # %% curva ROC e statistiche al variare della threshold
-w = min_w # miglior finestra
+w = w_ott # finestra ottimale
 anomaly_scores = evaluate(model, test, w)
 
 plt.figure()
 plt.plot(np.arange(0,240), anomaly_scores[0:240])
 plt.fill_between(np.arange(0,240), Y[(w-1):240+(w-1)], color='red', alpha=0.5)
 plt.ylim(bottom = -0.05, top = 1.05)
-plt.title("Anomaly Score on dataset")
+plt.title("Anomaly Score - {} stati e finestra = {}".format(K,w))
 plt.show()
 
 # test e anomaly_scores hanno medesima lunghezza dato che non sono state fatte operazioni
