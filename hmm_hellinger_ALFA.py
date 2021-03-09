@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+"""
+HMM dataset ALFA
+ 
+"""
+
 import pandas as pd
 import numpy as np
 from scipy import stats, linalg, integrate
@@ -12,6 +17,7 @@ from sklearn.metrics import roc_curve
 
 from statsmodels.tsa.seasonal import seasonal_decompose
 
+
 def bic_fun(funz_likelihood, params, data):
     """
     Calcola la metrica per la scelta del modello all'interno di una classe di modelli
@@ -24,6 +30,7 @@ def bic_fun(funz_likelihood, params, data):
     
     bic = -2*funz_likelihood(data) + params*np.log(len(data))
     return bic
+
 
 def chose_best_model(data, n_states_max=10):
     min_bic = float("inf")
@@ -39,8 +46,6 @@ def chose_best_model(data, n_states_max=10):
         # - distribuzione multivariata quindi MEDIE + MATRICE COVARIANZA = (N*M(M+3))/2
         #
         #(Sezione: Structural architecture) https://en.wikipedia.org/wiki/Hidden_Markov_model 
-        
-        
         
         M = hmm_candidate.n_features
 
@@ -110,8 +115,6 @@ K = 5
 
 ##########DATA AND MODEL TRAINING##############
 dataset = pd.read_csv(path_data).values
-###############################################
-
 
 model = hmm.GaussianHMM(n_components=K, covariance_type="diag", n_iter=100, random_state=0)
 
@@ -124,25 +127,14 @@ Y = Y.astype('float32')
 dataset = dataset.astype('float32')
 
 
-############################################### BIC
-############################################### BIC
-############################################### BIC
-############################################### BIC
-############################################### BIC
-############################################### BIC
+##########BIC##################################
 '''
 best_hmm, n_states = chose_best_model(dataset)
 print("Il miglior modello è quello con", n_states)
 
 model = hmm.GaussianHMM(n_components=n_states, covariance_type="diag", n_iter=100, random_state=0)
 '''
-############################################### BIC
-############################################### BIC
-############################################### BIC
-############################################### BIC
-############################################### BIC
-############################################### BIC
-
+###############################################
 
 
 # https://www.datacamp.com/community/tutorials/feature-selection-python
@@ -167,7 +159,7 @@ head = dataset[0:107,feat]
 
 train = dataset[0:2221,feat]
 
-#la decomposizione con season a 200 toglie i 100 campioni all'inizio e alla fine
+# la decomposizione con season a 200 toglie i 100 campioni all'inizio e alla fine
 test = dataset[2121:,feat]
 '''
 # %% 2a - train set con 85% delle osservazioni
@@ -181,7 +173,7 @@ test = dataset[2178:,feat]
 # %% 3 - roll mean sull'intero dataset
 dataset = dataset[:,feat]
 '''
-#%%######### RIDUZIONE DEL RUMORE CON ROLLING MEAN ############
+# %% RIDUZIONE DEL RUMORE CON ROLLING MEAN
 seconds = 0.5
 
 dataset_normalized = []
@@ -203,15 +195,14 @@ for column in train.transpose(): # 1 - roll mean sul train set
 train = np.array(dataset_normalized).transpose() # 1 - roll mean sul train set
 #dataset = np.array(dataset_normalized).transpose() # 3 - roll mean sull'intero dataset
 #train = dataset[0:2121] # 3 - roll mean sull'intero dataset
-############ #################################### #############
+
+model.fit(train)
+###############################################
 
 ##########EVALUATION OF ANOMALY SCORE##########
-model.fit(train)
-
 anomaly_scores = evaluate(model, np.concatenate((train, test)), w)
 #anomaly_scores = evaluate(model, np.concatenate((head, train, test)), w)
 #anomaly_scores = evaluate(model, test, w)
-
 #anomaly_scores = evaluate(model, dataset, w) # 3 - roll mean sull'intero dataset
 
 plt.figure()
@@ -301,21 +292,6 @@ plt.plot(thresholds, fprs)
 plt.title("False Positive Rate")
 plt.show()
 
-'''
-Una curva ROC è il grafico dell'insieme delle coppie (FP, TP) al variare di un 
-parametro del classificatore. Per esempio, in un classificatore a soglia, si 
-calcola la frazione di veri positivi e quella di falsi positivi per ogni possibile
-valore della soglia; tutti i punti così ottenuti nello spazio FP-TP descrivono la curva ROC.
-
-Attraverso l'analisi delle curve ROC si valuta la capacità del classificatore di discernere, 
-ad esempio, tra un insieme di popolazione sana e malata, calcolando l'area sottesa alla curva
-ROC (Area Under Curve, AUC). 
-
-Il valore di AUC, compreso tra 0 e 1, equivale infatti 
-alla probabilità che il risultato del classificatore applicato ad un individuo estratto
-a caso dal gruppo dei malati sia superiore a quello ottenuto applicandolo ad un individuo
-estratto a caso dal gruppo dei sani.
-'''
 # https://scikit-learn.org/stable/modules/generated/sklearn.metrics.roc_curve.html
 fpr, tpr, t = roc_curve(Y[206:], anomaly_scores)
 plt.figure()
@@ -326,6 +302,3 @@ plt.show()
 AUC = integrate.trapz(tpr, fpr)
 
 print("AUC (metodo integrazione trapezoidale):", AUC)
-
-
-

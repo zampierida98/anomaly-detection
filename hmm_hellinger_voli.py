@@ -153,7 +153,7 @@ model = hmm.GaussianHMM(n_components=K, covariance_type="diag", n_iter=100, rand
 
 model.fit(train)
 
-# %% Grandezza della finestra variabile
+# %% grandezza della finestra variabile
 w_ott = 0
 max_AUC = 0
 
@@ -263,21 +263,6 @@ plt.plot(thresholds, fprs)
 plt.title("False Positive Rate")
 plt.show()
 
-'''
-Una curva ROC è il grafico dell'insieme delle coppie (FP, TP) al variare di un 
-parametro del classificatore. Per esempio, in un classificatore a soglia, si 
-calcola la frazione di veri positivi e quella di falsi positivi per ogni possibile
-valore della soglia; tutti i punti così ottenuti nello spazio FP-TP descrivono la curva ROC.
-
-Attraverso l'analisi delle curve ROC si valuta la capacità del classificatore di discernere, 
-ad esempio, tra un insieme di popolazione sana e malata, calcolando l'area sottesa alla curva
-ROC (Area Under Curve, AUC). 
-
-Il valore di AUC, compreso tra 0 e 1, equivale infatti 
-alla probabilità che il risultato del classificatore applicato ad un individuo estratto
-a caso dal gruppo dei malati sia superiore a quello ottenuto applicandolo ad un individuo
-estratto a caso dal gruppo dei sani.
-'''
 # https://scikit-learn.org/stable/modules/generated/sklearn.metrics.roc_curve.html
 fpr, tpr, t = roc_curve(Y[(w-1):], anomaly_scores)
 plt.figure()
