@@ -172,14 +172,17 @@ for w in range(0,101,2):
         max_AUC = AUC
 
 # %% curva ROC e statistiche al variare della threshold
-w = w_ott # finestra ottimale
+w = 96
+#w = w_ott # finestra ottimale
 anomaly_scores = evaluate(model, test, w)
 
-plt.figure()
+plt.figure(dpi=125)
 plt.plot(np.arange(0,240), anomaly_scores[0:240])
 plt.fill_between(np.arange(0,240), Y[(w-1):240+(w-1)], color='red', alpha=0.5)
 plt.ylim(bottom = -0.05, top = 1.05)
-plt.title("Anomaly Score - {} stati e finestra = {}".format(K,w))
+plt.title("Anomaly score (dataset voli) - {} stati e finestra = {}".format(K,w))
+plt.xlabel("Observation")
+plt.ylabel("Score")
 plt.show()
 
 # test e anomaly_scores hanno medesima lunghezza dato che non sono state fatte operazioni
@@ -231,43 +234,57 @@ for thresh in thresholds:
     fprs.append(fpr)
 
 # https://en.wikipedia.org/wiki/Precision_and_recall#Definition_(classification_context)
-plt.figure()
+plt.figure(dpi=125)
 plt.plot(thresholds, precs)
-plt.title("Precision")
+plt.title("Grafico di precision (dataset voli)")
+plt.xlabel("Threshold")
+plt.ylabel("Precision")
 plt.show()
 
-plt.figure()
+plt.figure(dpi=125)
 plt.plot(thresholds, recs)
-plt.title("Recall")
+plt.title("Grafico di recall (dataset voli)")
+plt.xlabel("Threshold")
+plt.ylabel("Recall")
 plt.show()
 
 # https://en.wikipedia.org/wiki/F-score#Definition
-plt.figure()
+plt.figure(dpi=125)
 plt.plot(thresholds, f1s)
-plt.title("F1 score")
+plt.title("Grafico di F1 score (dataset voli)")
+plt.xlabel("Threshold")
+plt.ylabel("F1 score")
 plt.show()
 
 # https://it.wikipedia.org/wiki/Receiver_operating_characteristic
-plt.figure()
+plt.figure(dpi=125)
 plt.plot(thresholds, accs)
-plt.title("Accuracy")
+plt.title("Grafico di accuracy (dataset voli)")
+plt.xlabel("Threshold")
+plt.ylabel("Accuracy")
 plt.show()
 
-plt.figure()
+plt.figure(dpi=125)
 plt.plot(thresholds, tprs)
-plt.title("True Positive Rate")
+plt.title("Grafico del True Positive Rate (dataset voli)")
+plt.xlabel("Threshold")
+plt.ylabel("TPR")
 plt.show()
 
-plt.figure()
+plt.figure(dpi=125)
 plt.plot(thresholds, fprs)
-plt.title("False Positive Rate")
+plt.title("Grafico del False Positive Rate (dataset voli)")
+plt.xlabel("Threshold")
+plt.ylabel("FPR")
 plt.show()
 
 # https://scikit-learn.org/stable/modules/generated/sklearn.metrics.roc_curve.html
 fpr, tpr, t = roc_curve(Y[(w-1):], anomaly_scores)
-plt.figure()
+plt.figure(dpi=125)
 plt.plot(fpr, tpr)
-plt.title("Curva ROC")
+plt.title("Curva ROC (dataset voli)")
+plt.xlabel("FPR")
+plt.ylabel("TPR")
 plt.show()
 
 AUC = integrate.trapz(tpr, fpr)
