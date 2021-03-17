@@ -308,13 +308,13 @@ plt.show()
 
 # https://scikit-learn.org/stable/modules/generated/sklearn.metrics.roc_curve.html
 fpr, tpr, t = roc_curve(Y[206:], anomaly_scores)
+AUC = integrate.trapz(tpr, fpr)
+
 plt.figure(dpi=125)
 plt.plot(fpr, tpr)
-plt.title("Curva ROC (dataset ALFA)")
+plt.title("Curva ROC (dataset ALFA) - AUC = {area:.4f}".format(area=AUC))
 plt.xlabel("FPR")
 plt.ylabel("TPR")
 plt.show()
-
-AUC = integrate.trapz(tpr, fpr)
 
 print("AUC (metodo integrazione trapezoidale):", AUC)
